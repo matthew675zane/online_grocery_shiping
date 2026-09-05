@@ -1,0 +1,31 @@
+test_id,temperature_c,duration_minutes,location,product_class,available_actions,expected_risk,expected_action,expected_confirmation,expected_rule_id
+NORM-01,-18.0,10,warehouse,frozen,continue_monitoring|quarantine,LOW,continue_monitoring,False,R001
+NORM-02,2.0,15,vehicle,chilled,continue_monitoring|quarantine,LOW,continue_monitoring,False,R001
+NORM-03,-16.0,50,loading_area,frozen,continue_monitoring,LOW,continue_monitoring,False,R001
+NORM-04,4.5,50,customer_delivery,chilled,continue_monitoring,LOW,continue_monitoring,False,R001
+MOD-01,-12.0,20,warehouse,frozen,move_to_controlled_storage,MEDIUM,move_to_controlled_storage,False,R002
+MOD-02,7.0,30,loading_area,chilled,move_to_controlled_storage,MEDIUM,move_to_controlled_storage,False,R002
+MOD-03,-0.1,10,vehicle,chilled,move_to_controlled_storage,MEDIUM,move_to_controlled_storage,False,R002
+SEV-01,-5.0,20,warehouse,frozen,quarantine,HIGH,quarantine,True,R003
+SEV-02,9.0,15,loading_area,chilled,quarantine,HIGH,quarantine,True,R003
+SEV-03,-2.0,20,vehicle,chilled,quarantine,HIGH,quarantine,True,R003
+PRO-01,-18.0,65,warehouse,frozen,quarantine,HIGH,quarantine,True,R003
+PRO-02,3.0,90,vehicle,chilled,quarantine,HIGH,quarantine,True,R003
+EDGE-01,5.0,20,warehouse,unknown,quarantine,HIGH,quarantine,True,R004
+EDGE-02,,20,warehouse,frozen,escalate_to_supervisor,HIGH,escalate_to_supervisor,True,R007
+EDGE-03,-18.0,,warehouse,frozen,escalate_to_supervisor,HIGH,escalate_to_supervisor,True,R007
+EDGE-04,-12.0,20,warehouse,frozen,continue_monitoring|escalate_to_supervisor,MEDIUM,escalate_to_supervisor,True,R002 -> R005
+EDGE-05,10.0,20,customer_delivery,chilled,dispatch_replacement,HIGH,dispatch_replacement,True,R006
+EDGE-06,,,warehouse,unknown,escalate_to_supervisor,HIGH,escalate_to_supervisor,True,R007
+CUST-01,-12.0,20,customer_delivery,frozen,dispatch_replacement,MEDIUM,dispatch_replacement,True,R006
+CUST-02,6.0,25,customer_delivery,chilled,dispatch_replacement,MEDIUM,dispatch_replacement,True,R006
+CUST-03,-5.0,20,customer_delivery,frozen,dispatch_replacement,HIGH,dispatch_replacement,True,R006
+FB-01,-12.0,20,warehouse,frozen,quarantine|continue_monitoring,MEDIUM,quarantine,True,R002 -> R005
+FB-02,10.0,20,warehouse,chilled,move_to_controlled_storage|continue_monitoring,HIGH,move_to_controlled_storage,True,R003 -> R005
+FB-03,10.0,20,warehouse,chilled,continue_monitoring,HIGH,continue_monitoring,True,R003 -> R005
+FB-04,-12.0,20,warehouse,frozen,,MEDIUM,escalate_to_supervisor,True,R002 -> R005
+MIX-01,-20.0,5,loading_area,frozen,continue_monitoring,LOW,continue_monitoring,False,R001
+MIX-02,1.5,45,vehicle,chilled,continue_monitoring,LOW,continue_monitoring,False,R001
+MIX-03,-9.9,10,warehouse,frozen,quarantine,HIGH,quarantine,True,R003
+MIX-04,8.1,10,warehouse,chilled,quarantine,HIGH,quarantine,True,R003
+MIX-05,5.0,60,warehouse,unknown,quarantine,HIGH,quarantine,True,R004
