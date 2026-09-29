@@ -13,8 +13,8 @@
 
 ## Dispatcher Override Flow
 
-1. **Review Automated Decision:** A dispatcher reviews a pending alert and disagrees with the automated recommendation (e.g., due to physical package damage not visible to sensors).
+1. **Review Automated Decision:** A dispatcher reviews a pending alert and disagrees with the automated recommendation (e.g., due to physical package damage not visible to sensors). This acts as a critical human-in-the-loop validation for HIGH and CRITICAL risks.
 2. **Initiate Override:** The dispatcher selects a new corrective action from the dropdown on the dashboard.
-3. **Provide Justification:** The dispatcher types a mandatory, non-empty reason for the override.
+3. **Provide Justification:** The dispatcher selects a structured Reason Code (e.g., "Packaging unavailable", "Customer priority") and may optionally type a free-text explanation for additional context. If "Other" is selected, the explanation is mandatory.
 4. **Submit Override:** The API processes the request.
-5. **Audit Logging:** The system preserves the original automated recommendation, creates an Override record, and inserts a detailed Audit Log linking the human actor, the old action, the new action, and the specific reason. The alert status is moved to `overridden`.
+5. **Audit Logging:** The system preserves the original automated recommendation, creates an Override record, and inserts a detailed Audit Log linking the human actor, the old action, the new action, and the specific reason code and context. The alert status is moved to `overridden`.

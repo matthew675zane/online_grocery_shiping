@@ -7,11 +7,12 @@ Historically, in manual warehouse and dispatch operations, it takes approximatel
 3. Make and log a corrective decision
 *Note: This baseline value is a realistic operational assumption simulated for the purposes of benchmarking this prototype.*
 
-## Target
-The goal of the decision-support system is to reduce the time from excursion detection to initiating the correct corrective action to **5 minutes or less**.
+## Target and Benchmark
+The goal of the decision-support system is to reduce the time from excursion detection to initiating the correct corrective action to a target value (default 5 minutes).
+This benchmark is configurable in the UI. Users can adjust the Baseline Response Time (e.g., 15 minutes) and Target Response Time (e.g., 5 minutes) to see calculated improvements dynamically based on valid operational metrics.
 
 ## Measured Result
-The prototype calculates actual system performance based on database timestamps. Currently, the dashboard compares the baseline (15m) and the target (5m) to the live measured result extracted from the database.
+The prototype calculates actual system performance based on database timestamps (time from excursion detection to corrective action confirmation). The dashboard explicitly contrasts the baseline vs the target against the live measured response-time metric to compute improvement percentages.
 
 ### Specific Time Metrics Tracked
 - **time-to-recommendation:** The time between the excursion detection (`excursion_detected_at`) and when the engine generated the recommendation (`recommendation_created_at`).

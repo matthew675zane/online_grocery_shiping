@@ -17,6 +17,9 @@ def create_alert(alert_in: schemas.AlertCreate, db: Session = Depends(get_db)):
         duration_minutes=alert_in.duration_minutes,
         location=alert_in.location,
         product_class=alert_in.product_class,
+        packaging_condition=alert_in.packaging_condition,
+        cooling_source_proximity=alert_in.cooling_source_proximity,
+        mixed_load=alert_in.mixed_load,
         available_actions=alert_in.available_actions,
         status="pending"
     )
@@ -30,7 +33,10 @@ def create_alert(alert_in: schemas.AlertCreate, db: Session = Depends(get_db)):
         alert_in.duration_minutes,
         alert_in.location,
         alert_in.product_class,
-        alert_in.available_actions
+        alert_in.available_actions,
+        alert_in.packaging_condition,
+        alert_in.cooling_source_proximity,
+        alert_in.mixed_load
     )
     
     # 3. Create Recommendation record
@@ -124,8 +130,8 @@ def override_alert(alert_id: int, override_in: schemas.OverrideCreate, db: Sessi
     if not alert:
         raise HTTPException(status_code=404, detail="Alert not found")
         
-    if not override_in.reason or override_in.reason.strip() == "":
-        raise HTTPException(status_code=400, detail="Override reason cannot be empty")
+    if not override_in.reason_code or override_in.reason_code.strip() == "":
+        raise HTTPException(status_code=400, detail="Override reason code cannot be empty")
         
     latest_rec = db.query(models.Recommendation).filter(models.Recommendation.alert_id == alert.id).order_by(models.Recommendation.recommendation_created_at.desc()).first()
     original_action = latest_rec.recommended_action if latest_rec else "unknown"
@@ -141,7 +147,8 @@ def override_alert(alert_id: int, override_in: schemas.OverrideCreate, db: Sessi
         alert_id=alert.id,
         original_action=original_action,
         overridden_action=override_in.overridden_action,
-        reason=override_in.reason,
+        reason_code=override_in.reason_code,
+        explanation=override_in.explanation,
         dispatcher=override_in.dispatcher
     )
     db.add(db_override)
@@ -152,7 +159,7 @@ def override_alert(alert_id: int, override_in: schemas.OverrideCreate, db: Sessi
         previous_value=original_action,
         new_value=override_in.overridden_action,
         actor=override_in.dispatcher,
-        reason=override_in.reason
+        reason=f"{override_in.reason_code}: {override_in.explanation or ''}"
     )
     db.add(db_audit1)
     

@@ -51,7 +51,10 @@ def evaluate_excursion(
     duration_minutes: Optional[int],
     location: Optional[str],
     product_class: Optional[str],
-    available_actions: List[str]
+    available_actions: List[str],
+    packaging_condition: Optional[str] = "intact",
+    cooling_source_proximity: Optional[str] = "separated",
+    mixed_load: Optional[bool] = False
 ) -> Dict[str, Any]:
     """
     Evaluates a cold-chain excursion and provides a recommendation.
@@ -129,6 +132,49 @@ def evaluate_excursion(
     
     is_excursion = is_severe_temp or is_moderate_temp
     
+    # RULE R008: Chilled Freezing Risk (Proximity or Temp)
+    if product_class == "chilled":
+        if cooling_source_proximity == "close" or temperature_c < thresholds["min_safe_temp"]:
+            if mixed_load:
+                finalize(
+                    action="separate_compartments",
+                    explanation="Mixed load conflict: Chilled product is at risk of freezing due to proximity to dry ice or frozen items. Separate compartments.",
+                    risk="HIGH" if is_severe_temp else "MEDIUM",
+                    rule="R008",
+                    confirm=True
+                )
+                return rec
+            elif cooling_source_proximity == "close":
+                finalize(
+                    action="reposition_product",
+                    explanation="Chilled product freezing risk: Item is too close to cooling source. Reposition product away from dry ice.",
+                    risk="MEDIUM",
+                    rule="R008",
+                    confirm=True
+                )
+                return rec
+
+    # RULE R009: Frozen Thawing Risk (Insulation/Proximity)
+    if product_class == "frozen" and (packaging_condition in ["damaged", "inadequate"] or cooling_source_proximity == "none"):
+        if mixed_load:
+            finalize(
+                action="improve_insulation",
+                explanation="Mixed load conflict: Frozen product lacks adequate cooling/insulation in a mixed environment.",
+                risk="HIGH" if is_severe_temp else "MEDIUM",
+                rule="R009",
+                confirm=True
+            )
+            return rec
+        elif is_excursion:
+            finalize(
+                action="improve_insulation",
+                explanation="Frozen product thawing risk: Inadequate insulation or cooling source detected during an excursion.",
+                risk="HIGH" if is_severe_temp else "MEDIUM",
+                rule="R009",
+                confirm=True
+            )
+            return rec
+
     # RULE R006: Customer delivery impact
     if location == "customer_delivery" and is_excursion:
         finalize(

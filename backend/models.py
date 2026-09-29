@@ -12,6 +12,9 @@ class Alert(Base):
     duration_minutes = Column(Integer, nullable=True)
     location = Column(String, index=True)
     product_class = Column(String)
+    packaging_condition = Column(String, default="intact", nullable=True)
+    cooling_source_proximity = Column(String, default="separated", nullable=True)
+    mixed_load = Column(Boolean, default=False, nullable=True)
     available_actions = Column(JSON)
     
     # Timestamps
@@ -50,7 +53,8 @@ class Override(Base):
     alert_id = Column(Integer, ForeignKey("alerts.id"))
     original_action = Column(String)
     overridden_action = Column(String)
-    reason = Column(String)
+    reason_code = Column(String)
+    explanation = Column(String, nullable=True)
     dispatcher = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
 

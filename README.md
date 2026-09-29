@@ -13,6 +13,7 @@ The project uses a decoupled architecture:
 
 ## Features
 - Deterministic, explainable Decision Engine.
+- Advanced Frozen/Chilled Co-Shipping Rules: Identifies mixed-load conflicts, chilled item freezing risks (due to proximity to dry ice or temperatures), and frozen item thawing risks (due to inadequate insulation).
 - End-to-end Audit Logging for total transparency.
 - Mandatory text rationale for Dispatcher Overrides.
 - Live performance metrics calculating Time-to-Corrective-Action.

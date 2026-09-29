@@ -15,9 +15,11 @@ This document outlines the current state of the ColdChain Assist prototype as of
 - [x] **Metrics System:** Implemented true timestamp diffing to accurately measure time-to-corrective-action.
 - [x] **Documentation:** Drafted comprehensive architectural, requirements, limitations, and user flow documentation.
 
+- [x] **Advanced Rule Engine:** Deepened cold-chain rules with co-shipping logic, freezing/thawing risks, and proximity validations.
+- [x] **Configurable Benchmarks:** Improved metrics system with dynamic, configurable baseline and target response times.
+
 ## Pending Work
 - [ ] **Data Ingestion Pipeline:** Integrating with actual IoT telemetry payloads instead of manual form inputs.
-- [ ] **Advanced Rule Engine:** Moving hard-coded thresholds into a database-driven configuration module accessible via the UI.
 - [ ] **Authentication/Authorization:** Implementing secure logins and role-based access control (RBAC) to restrict overrides to authorized personnel.
 - [ ] **Production Database Migration:** Upgrading from SQLite to PostgreSQL for concurrent scalability.
 - [ ] **Alert Notification System:** Implementing email/SMS/Slack webhooks for critical high-risk escalations.

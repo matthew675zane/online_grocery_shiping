@@ -33,6 +33,7 @@ The system is divided into a backend API layer responsible for data persistence 
 ## Audit Layer
 - **Role:** Database and API mechanisms that trap every state transition.
 - **Function:** Records the `event_type`, `previous_value`, `new_value`, `actor`, and `reason` for full compliance tracking.
+- **Immutable Plan-Change History:** Every change, confirmation, or override creates an immutable audit record. Historical decisions are never overwritten, ensuring we can always answer: "What was recommended?", "What did the dispatcher do?", "When did they do it?", and "Why was it changed?".
 
 ## Metrics Layer
 - **Role:** Service module (`backend/services/metrics_service.py`).

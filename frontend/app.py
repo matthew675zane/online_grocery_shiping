@@ -90,13 +90,20 @@ def render_create_alert():
                 "inspect_packaging",
                 "quarantine",
                 "escalate_to_supervisor",
-                "dispatch_replacement"
+                "dispatch_replacement",
+                "separate_compartments",
+                "reposition_product",
+                "improve_insulation"
             ]
             available_actions = st.multiselect(
                 "Available Corrective Actions", 
                 options=all_actions, 
                 default=all_actions
             )
+            
+            packaging_condition = st.selectbox("Packaging Condition", ["intact", "damaged", "inadequate"])
+            cooling_source_proximity = st.selectbox("Cooling Source Proximity", ["separated", "close", "none"])
+            mixed_load = st.checkbox("Mixed Load (Frozen + Chilled)?")
             
         submitted = st.form_submit_button("Submit to Decision Engine")
         
@@ -106,7 +113,10 @@ def render_create_alert():
             "duration_minutes": duration,
             "location": location,
             "product_class": product_class,
-            "available_actions": available_actions
+            "available_actions": available_actions,
+            "packaging_condition": packaging_condition,
+            "cooling_source_proximity": cooling_source_proximity,
+            "mixed_load": mixed_load
         }
         
         try:
@@ -144,7 +154,7 @@ def render_alert_details():
         return
         
     # Dropdown to select an alert
-    alert_options = {f"Alert #{a['id']} - {a['detected_at'][:19]} (Status: {a['status']})": a['id'] for a in alerts}
+    alert_options = {f"Alert #{a['id']} - {a.get('excursion_detected_at', 'Unknown')[:19]} (Status: {a.get('status', 'Unknown')})": a['id'] for a in alerts}
     selected_name = st.selectbox("Select Alert", list(alert_options.keys()))
     
     if selected_name:
@@ -163,6 +173,9 @@ def render_alert_details():
                 st.write(f"**Duration:** {detail['duration_minutes']} mins")
                 st.write(f"**Location:** {detail['location']}")
                 st.write(f"**Product Class:** {detail['product_class']}")
+                st.write(f"**Packaging:** {detail.get('packaging_condition', 'N/A')}")
+                st.write(f"**Cooling Proximity:** {detail.get('cooling_source_proximity', 'N/A')}")
+                st.write(f"**Mixed Load:** {'Yes' if detail.get('mixed_load') else 'No'}")
             
             with col2:
                 st.subheader("Engine Recommendation")
@@ -208,26 +221,44 @@ def render_alert_details():
                             "inspect_packaging",
                             "quarantine",
                             "escalate_to_supervisor",
-                            "dispatch_replacement"
+                            "dispatch_replacement",
+                            "separate_compartments",
+                            "reposition_product",
+                            "improve_insulation"
                         ]
                         
                         orig_action = latest_rec['recommended_action'] if latest_rec else "unknown"
                         st.text_input("Original Recommendation", value=orig_action, disabled=True)
                         
                         new_action = st.selectbox("New Corrective Action", all_actions)
-                        reason = st.text_area("Mandatory Override Reason", placeholder="Explain why the system recommendation is being bypassed.")
+                        
+                        reason_code_options = [
+                            "Packaging unavailable",
+                            "Vehicle constraint",
+                            "Route constraint",
+                            "Customer priority",
+                            "Operational limitation",
+                            "Temperature sensor issue",
+                            "Dispatcher judgement",
+                            "Other"
+                        ]
+                        reason_code = st.selectbox("Override Reason Code", reason_code_options)
+                        explanation = st.text_area("Additional Explanation", placeholder="Provide context or explanation for the override.")
                         dispatcher = st.text_input("Dispatcher Name", placeholder="e.g. Jane Doe")
                         
                         submit_override = st.form_submit_button("Submit Override")
                         if submit_override:
-                            if not reason.strip():
-                                st.error("Override reason is mandatory.")
+                            if not reason_code:
+                                st.error("Reason code is mandatory.")
+                            elif reason_code == "Other" and not explanation.strip():
+                                st.error("Explanation is mandatory when 'Other' is selected.")
                             elif not dispatcher.strip():
                                 st.error("Dispatcher name is mandatory.")
                             else:
                                 payload = {
                                     "overridden_action": new_action,
-                                    "reason": reason,
+                                    "reason_code": reason_code,
+                                    "explanation": explanation,
                                     "dispatcher": dispatcher
                                 }
                                 r = requests.post(f"{API_URL}/alerts/{alert_id}/override", json=payload)
@@ -253,6 +284,11 @@ def render_metrics():
     st.title("Performance & Delivery Metrics")
     st.write("Comparing prototype efficiency against manual dispatcher baselines.")
     
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("Benchmark Settings")
+    baseline_mins = st.sidebar.number_input("Baseline Response (mins)", min_value=1, value=15, help="Measured from historical manual process.")
+    target_mins = st.sidebar.number_input("Target Response (mins)", min_value=1, value=5, help="Goal for decision-support prototype.")
+    
     metrics = fetch_metrics()
     if not metrics:
         st.error("Unable to load metrics.")
@@ -268,16 +304,16 @@ def render_metrics():
     except Exception:
         measured_seconds = 0
         
-    baseline_seconds = 15 * 60 # 15 mins historically
-    target_seconds = 5 * 60 # 5 mins goal
+    baseline_seconds = baseline_mins * 60
+    target_seconds = target_mins * 60
     
     improvement_pct = 0
     if baseline_seconds > 0 and measured_seconds > 0:
         improvement_pct = round(((baseline_seconds - measured_seconds) / baseline_seconds) * 100, 1)
         
     col1, col2, col3 = st.columns(3)
-    col1.metric("Baseline Corrective-Action Time", "15m 0s", help="Historical manual process time.")
-    col2.metric("Target Corrective-Action Time", "5m 0s", help="Goal for decision-support prototype.")
+    col1.metric("Baseline Corrective-Action Time", f"{baseline_mins}m 0s", help="Historical manual process time.")
+    col2.metric("Target Corrective-Action Time", f"{target_mins}m 0s", help="Goal for decision-support prototype.")
     
     # Delta logic: positive means we saved time.
     delta_str = f"{improvement_pct}% Improvement" if measured_seconds > 0 else None
@@ -312,7 +348,9 @@ def render_rule_reference():
         {"id": "R004", "name": "Unknown class", "desc": "If the product class is unknown. Risk = HIGH, Action = quarantine. Requires confirmation."},
         {"id": "R005", "name": "Action Unavailable Fallback", "desc": "If available_actions does not contain the recommended action, select the safest available alternative and explain the fallback."},
         {"id": "R006", "name": "Customer Delivery Impact", "desc": "If the alert occurs at customer_delivery, prioritize customer service and recommend dispatch_replacement."},
-        {"id": "R007", "name": "Missing data", "desc": "If data is missing or contradictory. Risk = HIGH, Action = escalate_to_supervisor. Requires confirmation."}
+        {"id": "R007", "name": "Missing data", "desc": "If data is missing or contradictory. Risk = HIGH, Action = escalate_to_supervisor. Requires confirmation."},
+        {"id": "R008", "name": "Chilled Freezing Risk", "desc": "Chilled item freezing due to proximity or temp. Action = reposition_product or separate_compartments."},
+        {"id": "R009", "name": "Frozen Thawing Risk", "desc": "Frozen item thawing due to missing cooling source or inadequate insulation. Action = improve_insulation."}
     ]
     
     for r in rules:

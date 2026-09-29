@@ -7,6 +7,9 @@ class AlertCreate(BaseModel):
     duration_minutes: Optional[int] = None
     location: str
     product_class: str
+    packaging_condition: Optional[str] = "intact"
+    cooling_source_proximity: Optional[str] = "separated"
+    mixed_load: Optional[bool] = False
     available_actions: List[str]
 
 class RecommendationResponse(BaseModel):
@@ -40,6 +43,9 @@ class AlertResponse(BaseModel):
     duration_minutes: Optional[int]
     location: str
     product_class: str
+    packaging_condition: Optional[str] = None
+    cooling_source_proximity: Optional[str] = None
+    mixed_load: Optional[bool] = None
     available_actions: List[str]
     excursion_detected_at: datetime
     confirmation_at: Optional[datetime]
@@ -55,5 +61,6 @@ class AlertDetailResponse(AlertResponse):
 
 class OverrideCreate(BaseModel):
     overridden_action: str
-    reason: str = Field(..., min_length=1)
+    reason_code: str
+    explanation: Optional[str] = None
     dispatcher: str

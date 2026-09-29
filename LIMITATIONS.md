@@ -20,3 +20,6 @@ The validation dataset and performance metrics currently rely on simulated or ma
 
 ## Uncertainty Handling
 The system handles uncertainty (missing temperatures, missing duration, unknown classes) aggressively by defaulting to immediate escalation or quarantine. While safe, this could cause massive operational bottlenecks if sensor failure rates are high.
+
+## Rule-Based Prototyping
+Clearly note that this prototype uses rule-based logic to simulate decision-making. It does not claim to replace validated food-safety procedures or professional cold-chain standards. Any operational use must be accompanied by comprehensive human oversight.
